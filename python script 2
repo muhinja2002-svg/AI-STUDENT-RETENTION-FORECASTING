@@ -1,0 +1,61 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import os
+
+# --- STEP 1: SET FILE PATH ---
+FILE_PATH = r"C:\Users\Administrator\Downloads\SLU_Opportunity_Wise_Data_CLEANED.csv"
+
+
+def run_eda():
+    if not os.path.exists(FILE_PATH):
+        print(f"ERROR: File '{FILE_PATH}' not found.")
+        print("FIX: Move the CSV file into your PyCharm project folder or update the FILE_PATH in the script.")
+        return
+
+    # Load Data
+    df = pd.read_csv(FILE_PATH)
+
+    # Date Conversion
+    date_cols = ['Learner SignUp DateTime', 'Opportunity End Date', 'Date of Birth',
+                 'Entry created at', 'Apply Date', 'Opportunity Start Date']
+    for col in date_cols:
+        if col in df.columns:
+            df[col] = pd.to_datetime(df[col], errors='coerce')
+
+    print("--- Data Summary ---")
+    print(df[['Age', 'Application_Delay_Days', 'Opportunity_Duration_Days']].describe())
+
+    # Visualizations
+    sns.set_theme(style='whitegrid')
+
+    # 1. Signup Trends
+    df['Month_Year'] = df['Learner SignUp DateTime'].dt.to_period('M').astype(str)
+    plt.figure(figsize=(10, 5))
+    df.groupby('Month_Year').size().plot(kind='line', marker='o', color='royalblue')
+    plt.title('Monthly Signups Growth')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('signup_growth.png')
+
+    # 2. Success by Category
+    plt.figure(figsize=(10, 5))
+    sns.barplot(x='Opportunity Category', y='Success_Binary', data=df, palette='viridis')
+    plt.title('Success Rate by Category')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('success_by_category.png')
+
+    # 3. Age Distribution
+    plt.figure(figsize=(10, 5))
+    sns.histplot(df['Age'], kde=True, color='teal')
+    plt.title('Learner Age Distribution')
+    plt.tight_layout()
+    plt.savefig('age_distribution.png')
+
+    print("\nSUCCESS: Charts saved as 'signup_growth.png', 'success_by_category.png', and 'age_distribution.png'.")
+
+
+if __name__ == "__main__":
+    run_eda()
