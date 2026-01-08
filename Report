@@ -1,0 +1,73 @@
+
+SLU Opportunity Engagement & Attrition Forecasting: Comprehensive Report
+
+Intern: Rawlings Muhinja 
+
+
+Date: December 2025 
+
+1. Executive Summary
+This report synthesizes the progress from data cleaning to predictive modeling regarding student "churn" on the SLU platform. By analyzing 8,558 learner records, the project identified that speed of engagement is the primary driver of success. A Random Forest model was developed, achieving 95.97% accuracy in forecasting whether a student will reach a "Success" state (Started or Rewards Awarded).
+
+2. Data Preparation & Exploratory Analysis
+Data Cleaning (Week 1)
+Initial reviews revealed significant data quality issues, including 60.5% missing Dates of Birth and 42.1% missing Apply Dates. To maintain the integrity of the 8,558 records, the following actions were taken:
+
+
+Feature Engineering: Created Success_Binary as the target variable.
+
+
+Imputation: Used median/mode imputation for Application_Delay_Days and Age.
+
+
+Aggregation: Grouped high-cardinality fields like Institution Name (2,089 unique values) and Country to prevent model overfitting.
+
+Key Exploratory Findings (Week 2)
+The dataset is heavily weighted toward Internships (63%), yet these also experience high churn.
+
+
+Success Rate: Only 9.3% of records reach a success state, while 90.7% remain in "Non-Success" (e.g., Rejected or Allocated).
+
+
+The "Immediate Action" Pattern: Successful learners typically apply on the same day they sign up (Median Delay = 0 days).
+
+
+Demographics: Engagement peaks in the 22–25 age bracket, particularly among users in the United States (46%) and India.
+
+3. Predictive Modeling & Findings (Week 3)
+Model Performance
+Three machine learning algorithms were trained on an 80/20 split to identify at-risk students.
+
+Model	Accuracy	Precision	Recall (Success)	F1-Score
+Logistic Regression	93.63%	69.84%	55.35%	0.62
+Decision Tree	94.86%	71.78%	73.58%	0.73
+Random Forest	95.97%	80.00%	75.47%	0.78
+
+
+Primary Drivers of Churn
+
+Application Delay: Students who do not apply within 24 hours of signup are significantly more likely to churn.
+
+
+Opportunity Duration: Longer programs without intermediate rewards see higher attrition.
+
+
+Age Cohorts: Churn increases in demographics younger than 22 or older than 25.
+
+4. Strategic Recommendations
+Immediate Interventions
+
+The "24-Hour Nudge": Implement automated reminders (SMS/Email) for learners who haven't applied within 12-24 hours of signup.
+
+
+Early Warning System: Use the Random Forest model to flag "At-Risk" learners (Probability of Success < 30%) for direct human outreach.
+
+Platform Enhancements
+
+Simplified Pathways: Create "1-click" applications for internships to reduce friction.
+
+
+Milestone Incentives: Introduce digital badges or intermediate certificates for long-duration opportunities to maintain engagement.
+
+
+Data Health: Future modeling should continue to exclude anomalies, such as impossible ages (<16) or negative delay days.
