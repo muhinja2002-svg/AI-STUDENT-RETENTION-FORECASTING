@@ -1,0 +1,93 @@
+import pandas as pd
+import os
+import numpy as np
+
+# --- 1. CONFIGURATION ---
+downloads_path = r"C:\Users\Administrator\Downloads"
+file_name = "SLU Opportunity Wise Data-1710158595043.xlsx"
+full_file_path = os.path.join(downloads_path, file_name)
+
+# --- 2. LOADING DATA AND SAVING THE RAW VERSION ---
+try:
+    # Loading the data from my Downloads folder
+    dataFrame_raw = pd.read_excel(full_file_path)
+    dataFrame_cleaned = dataFrame_raw.copy() # Creating a copy to work on
+
+    print("SUCCESS! Data loaded from Excel.")
+
+    # Saving the UNCLEANED version
+    raw_output_name = "SLU_Opportunity_Wise_Data_RAW.csv"
+    raw_output_path = os.path.join(downloads_path, raw_output_name)
+    dataFrame_raw.to_csv(raw_output_path, index=False)
+    print(f"File 1: RAW data saved to: {raw_output_path}")
+
+except Exception as e:
+    print(f"Error loading file: {e}")
+    # Exit the script if loading fails
+    exit()
+
+# --- 3. DATA CLEANING ---
+
+# 3a. Converting Date Columns
+date_cols = [
+    'Learner SignUp DateTime', 'Opportunity End Date', 'Date of Birth',
+    'Entry created at', 'Apply Date', 'Opportunity Start Date'
+]
+for col in date_cols:
+    # Applying date conversion to the cleaned copy
+    dataFrame_cleaned[col] = pd.to_datetime(dataFrame_cleaned[col], errors='coerce', dayfirst=True)
+
+# 3b. Handling  Missing Values
+dataFrame_cleaned['Institution Name'] = dataFrame_cleaned['Institution Name'].fillna('Unknown')
+dataFrame_cleaned['Current/Intended Major'] = dataFrame_cleaned['Current/Intended Major'].fillna('Unknown')
+
+# 3c. Create Target Variable (Success_Binary)
+success_states = ['Started', 'Rewards Award']
+dataFrame_cleaned['Success_Binary'] = dataFrame_cleaned['Status Description'].apply(
+    lambda x: 1 if x in success_states else 0
+)
+
+# 3d. Create Missing Indicator Features
+dataFrame_cleaned['Is_Learner_Signup_Missing'] = dataFrame_cleaned['Learner SignUp DateTime'].isna().astype(int)
+dataFrame_cleaned['Is_Apply_Date_Missing'] = dataFrame_cleaned['Apply Date'].isna().astype(int)
+dataFrame_cleaned['Is_DOB_Missing'] = dataFrame_cleaned['Date of Birth'].isna().astype(int)
+
+# 3e. Feature Engineering (Temporal)
+max_entry_date = dataFrame_cleaned['Entry created at'].max()
+
+# Age (Calculate and Impute)
+dataFrame_cleaned['Age'] = (max_entry_date - dataFrame_cleaned['Date of Birth']).dt.days / 365.25
+median_age = dataFrame_cleaned['Age'].median()
+dataFrame_cleaned['Age'] = dataFrame_cleaned['Age'].fillna(median_age)
+
+# Application Delay
+dataFrame_cleaned['Application_Delay_Days'] = (dataFrame_cleaned['Apply Date'] - dataFrame_cleaned['Learner SignUp DateTime']).dt.days
+
+# Application Month
+dataFrame_cleaned['Application_Month'] = dataFrame_cleaned['Apply Date'].dt.month
+dataFrame_cleaned['Application_Month'] = dataFrame_cleaned['Application_Month'].fillna(dataFrame_cleaned['Learner SignUp DateTime'].dt.month)
+
+# Opportunity Duration (Calculate and Impute)
+dataFrame_cleaned['Opportunity_Duration_Days'] = (dataFrame_cleaned['Opportunity End Date'] - dataFrame_cleaned['Opportunity Start Date']).dt.days
+median_duration = dataFrame_cleaned['Opportunity_Duration_Days'].median()
+dataFrame_cleaned['Opportunity_Duration_Days'] = dataFrame_cleaned['Opportunity_Duration_Days'].fillna(median_duration)
+
+# 3f. Feature Engineering (Categorical Aggregation)
+top_countries = dataFrame_cleaned['Country'].value_counts().head(10).index.tolist()
+dataFrame_cleaned['Country_Grouped'] = dataFrame_cleaned['Country'].apply(
+    lambda x: x if x in top_countries else 'Other'
+)
+top_institutions = dataFrame_cleaned['Institution Name'].value_counts().head(3).index.tolist()
+dataFrame_cleaned['Institution_Grouped'] = dataFrame_cleaned['Institution Name'].apply(
+    lambda x: x if x in top_institutions else 'Other'
+)
+
+
+# --- 4. SAVE THE CLEANED VERSION ---
+cleaned_output_name = "SLU_Opportunity_Wise_Data_CLEANED.csv"
+cleaned_output_path = os.path.join(downloads_path, cleaned_output_name)
+dataFrame_cleaned.to_csv(cleaned_output_path, index=False)
+print(f"File 2: CLEANED data saved to: {cleaned_output_path}")
+
+print("\n--- Process Complete ---")
+print(f"Check your Downloads folder ({downloads_path}) for both files."
