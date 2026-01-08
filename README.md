@@ -33,4 +33,4 @@ This project was completed in a remote, global environment. I collaborated with 
 
 ## 📜 How to View
 1. Open the `/deliverables` folder to view the final PPT and Comprehensive Report.
-2. Check the `/notebooks` folder for the Python implementation.
+2. Check the python scripts for the Python implementation.
